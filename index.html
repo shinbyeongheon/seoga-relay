@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>서가 구글 연결 중계</title>
+<style>body{font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;max-width:520px;margin:12vh auto;padding:0 20px;color:#14262f;line-height:1.6}h1{font-size:20px}.m{color:#65808c;font-size:14px}code{background:#eef3f3;padding:2px 6px;border-radius:6px}</style></head><body>
+<h1>서가로 돌아가는 중…</h1>
+<p class="m" id="msg">구글 로그인을 마쳤어요. 잠시 뒤 서가로 자동으로 돌아가요.</p>
+<p class="m">이 페이지는 구글이 돌려준 임시 코드를 <b>당신의 브라우저에서 서가(사내 주소)로 그대로 전달</b>하는 역할만 해요. 코드는 이 페이지를 운영하는 서버에 저장되거나 전송되지 않아요(이 파일은 정적 페이지예요).</p>
+<script>
+// 전달 대상은 사내(사설) 주소로만 제한한다: localhost, 사설 IP, 점 없는 이름(노트북 이름), .local/.lan/.internal
+(function () {
+  var q = new URLSearchParams(location.search), st = q.get("state") || "", parts = st.split("."), msg = document.getElementById("msg");
+  function fail(t) { msg.textContent = t; }
+  if (q.get("error")) return fail("구글 연결이 취소되었거나 오류가 났어요(" + q.get("error") + "). 서가로 돌아가 다시 시도해 주세요.");
+  if (!q.get("code") || parts.length !== 5) return fail("연결 정보가 올바르지 않아요. 서가에서 [구글 계정으로 연결]을 다시 눌러 주세요.");
+  var ret = ""; try { ret = atob(parts[3].replace(/-/g, "+").replace(/_/g, "/")); } catch (e) { return fail("돌아갈 서가 주소를 읽지 못했어요."); }
+  var u; try { u = new URL(ret); } catch (e) { return fail("돌아갈 서가 주소가 올바르지 않아요."); }
+  var h = u.hostname, ok = u.protocol === "http:" && (h === "localhost" || /^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || h.indexOf(".") < 0 || /\.(local|lan|internal|intranet)$/.test(h));
+  if (!ok) return fail("사내 주소가 아닌 곳으로는 전달하지 않아요: " + h);
+  location.replace(u.origin + "/oauth/google/callback?" + new URLSearchParams({ code: q.get("code"), state: st }).toString());
+})();
+</script></body></html>
